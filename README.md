@@ -13,30 +13,106 @@ $PWD
 
 it will generate automatically the folders and populate the server.js with a basic template code
 
+<br>
+
 # clone the repository
 
 ```
-git clone <---the repo url--->
+$git clone <---the repo url--->
 ```
+
+<br>
 
 # copy the scripts to /usr/bin
 
-for the scripts to work globally, you need to copy the shell scripts to the /usr/bin/ file
+for the scripts to work globally, you need to copy the shell scripts to the /usr/bin/ file<br>
+after cloning or forking the repo, go to the local directory where the repository exists and run the following command. this will copy everything into /usr/bin
 
 ```
-cp ./generate_app_folder.sh /usr/bin/
-cp ./new_app.sh /usr/bin/
+$cp ./* /usr/bin/
 ```
 
 now it will work in any directory
 
-## run generate_app_folders.sh first
+<br>
+
+# run app_init.sh first
 
 ```
-generate_app_folders.sh
+$app_init.sh
 ```
 
-## then run new_api.sh
+this will ask you diffrent questions about the server port, modules you want to install and the database name for your application. the server will automatically be modified to import the pakages and the neccessary code will be add to use and activate everything.
+
+```
+$ app_init.sh
+enter the server port:[default: 4000] 2345
+Folders created successfully in /c/Users/Ahmed_Alhamed/Documents/SEI/classwork/experiments!
+Do you want to install Express? (y/n) [default: y]
+Do you want to install EJS? (y/n) [default: y]
+Do you want to install Express-EJS-Layouts? (y/n) [default: y]
+Do you want to install Mongoose? (y/n) [default: y]
+
+added 16 packages in 3s
+
+...
+
+database name: test
+server will be connected to mongodb://127.0.0.1:27017/test
+```
+
+<br>
+
+when express is installed, this will be inserted into the server in the first line:
+
+```
+const express = require("express");
+```
+
+<br>
+
+when EJS is installed, this will be inserted into the server:
+
+```
+app.set("view engine", "ejs");
+```
+
+<br>
+
+when Express-EJS-Layouts is installed, this will be inserted into the server:
+
+```
+const expressLayouts = require("express-ejs-layouts");
+
+
+app.use(expressLayouts);
+```
+
+<br>
+
+when Mongoose is installed, this will be inserted into the server:
+
+```
+const mongoose = require("mongoose");
+
+
+
+mongoose
+  .connect("mongodb://127.0.0.1:27017/test", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(function () {
+    console.log("mongoDB connected");
+  })
+  .catch(function (err) {
+    console.log("mongoDB error: " + err.message);
+  });
+```
+
+<br>
+
+# then run new_api.sh
 
 whenever you need to add a get, post, put or delete API, run this
 
