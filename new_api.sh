@@ -4,6 +4,8 @@ current_dir="$PWD"
 
 # Prompt the user for the file name
 read -p "Enter file name (without the .js extension): " filename
+read -p "Enter the method (get, post, put, delete): " method
+read -p "Enter the route (including root '/'): " route
 
 # Create the JavaScript file
 touch "./controllers/$filename.js"
@@ -21,7 +23,7 @@ echo "const ${filename}Ctrl = require(\"../controllers/${filename}\");" >> "./ro
 echo "" >> "./routes/$filename.js"
 echo "const router = express.Router();" >> "./routes/$filename.js"
 echo "" >> "./routes/$filename.js"
-echo "router.get(\"/\", ${filename}Ctrl.${filename});" >> "./routes/$filename.js"
+echo "router.${method}('$route', ${filename}Ctrl.${filename});" >> "./routes/$filename.js"
 echo "" >> "./routes/$filename.js"
 echo "module.exports = router;" >> "./routes/$filename.js"
 
