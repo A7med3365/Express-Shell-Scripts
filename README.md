@@ -26,10 +26,10 @@ $git clone <---the repo url--->
 # copy the scripts to /usr/bin
 
 for the scripts to work globally, you need to copy the shell scripts to the /usr/bin/ file<br>
-after cloning or forking the repo, go to the local directory where the repository exists and run the following command. this will copy everything into /usr/bin
+after cloning or forking the repo, go to the local directory where the repository exists and run the following command. this will copy all the scripts into /usr/bin
 
 ```
-$cp ./* /usr/bin/
+$cp ./*.sh /usr/bin/
 ```
 
 now it will work in any directory
