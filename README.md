@@ -32,6 +32,12 @@ after cloning or forking the repo, go to the local directory where the repositor
 $cp ./*.sh /usr/bin/
 ```
 
+## for macOS
+
+```
+$cp ./*.sh /usr/local/bin
+```
+
 now it will work in any directory
 
 <br>
