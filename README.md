@@ -35,7 +35,9 @@ $cp ./*.sh /usr/bin/
 ## for macOS
 
 ```
-$cp ./*.sh /usr/local/bin
+$sudo chmod +x ./*.sh
+
+$sudo cp ./*.sh /usr/local/bin
 ```
 
 now it will work in any directory
