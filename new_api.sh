@@ -1,74 +1,103 @@
 #!/bin/bash
 
-current_dir="$PWD"
+# Print the list of existing collections with numbers
+echo "Existing collections:"
+mapfile -t collections < <(ls -1 "./controllers")
+for i in "${!collections[@]}"; do
+    echo "$((i + 1)). ${collections[$i]}"
+done
+
+# Prompt the user to choose a collection by number or create a new one
+read -rp "Enter the number of an existing collection or enter a new collection name in camel case: " collection_input
+
+# Check if the user entered a number
+if [[ "$collection_input" =~ ^[0-9]+$ ]]; then
+    # Subtract 1 from the number to get the index of the selected collection
+    collection_index=$((collection_input - 1))
+    # Check if the selected collection index is valid
+    if ((collection_index >= 0 && collection_index < ${#collections[@]})); then
+        # Use the selected collection
+        collection_name="${collections[$collection_index]}"
+        echo "Using existing collection $collection_name"
+    else
+        echo "Invalid collection number"
+        exit 1
+    fi
+else
+    # Use the entered collection name
+    collection_name="$collection_input"
+    # Check if the collection already exists
+    if [ -d "./controllers/$collection_name" ]; then
+        echo "Using existing collection $collection_name"
+    else
+        # Create the collection folder in the controllers folder
+        mkdir -p "./controllers/$collection_name"
+        echo "Created new collection $collection_name"
+    fi
+fi
 
 # Prompt the user for the file name
-read -p "Enter file name (without the .js extension): " filename
-read -p "Enter the method (get, post, put, delete): " method
-read -p "Enter the route (including root '/'): " route
+read -rp "Enter file name in camel case (without the .js extension): " filename
+read -rp "Enter the method (get, post, put, delete): " method
+read -rp "Enter the route (including root '/'): " route
 
-# Create the JavaScript file
-touch "./controllers/$filename.js"
-touch "./routes/$filename.js"
+# get the import and mount line numbers
+import_line=$(cat ".shell_variables/.import_line")
+mount_line=$(cat ".shell_variables/.mount_line")
 
+# Create the routes file for the collection in the routes folder if it doesn't exist, if it does exist, insert the route into the file
+if [ -f "./routes/$collection_name.js" ]; then
 
-# Populate the contoller file with a basic template
-echo "// ${filename}.js" >> "./controllers/$filename.js"
-echo "exports.${filename} = function (req, res) {}" >> "./controllers/$filename.js"
+    ctrl_import_line=$(grep -n "//<--import controllers-->>" "./routes/$collection_name.js" | cut -d: -f1)
+    ctrl_import_line=$((ctrl_import_line + 1))
 
-# Populate the router file with a basic template
-echo "const express = require(\"express\");" >> "./routes/$filename.js"
-echo "" >> "./routes/$filename.js"
-echo "const ${filename}Ctrl = require(\"../controllers/${filename}\");" >> "./routes/$filename.js"
-echo "" >> "./routes/$filename.js"
-echo "const router = express.Router();" >> "./routes/$filename.js"
-echo "" >> "./routes/$filename.js"
-echo "router.${method}('$route', ${filename}Ctrl.${filename});" >> "./routes/$filename.js"
-echo "" >> "./routes/$filename.js"
-echo "module.exports = router;" >> "./routes/$filename.js"
+    ctrl_router_line=$(grep -n "//<--make api routes-->>" "./routes/$collection_name.js" | cut -d: -f1)
+    ctrl_router_line=$((ctrl_router_line + 2))
 
+    sed -i "${ctrl_import_line}i\\
+const ${filename}Ctrl = require(\"../controllers/${collection_name}/${filename}\");" "./routes/$collection_name.js"
 
-#import the route into the server
-import_line_number_file='.import_line'
+    sed -i "${ctrl_router_line}i\\
+router.${method}('${route}', ${filename}Ctrl.${filename});" "./routes/$collection_name.js"
 
-# Read the stored line number from the hidden file
+else
+    # Create the collection folder in the controllers folder if it doesn't exist
+    mkdir -p "./controllers/$collection_name"
 
-import_line_number=$(cat "$import_line_number_file")
-echo "$import_line_number"
+    touch "./routes/$collection_name.js"
+    echo "created new collection $collection_name"
 
-# Move the comment to the following line using sed
-sed -i "${import_line_number}i\\
-const ${filename}Router = require(\"./routes/${filename}\");" "server.js"
+    echo "const express = require(\"express\");
+    const router = express.Router();
 
-# Calculate the next line number
-import_next_line_number=$((import_line_number + 1))
+    //<--import controllers-->>
+    const ${filename}Ctrl = require(\"../controllers/${collection_name}/${filename}\");
 
-# Store the updated line number in the hidden file
-echo "$import_next_line_number" > "$import_line_number_file"
+    //<--make api routes-->>
+    router.${method}('${route}', ${filename}Ctrl.${filename});
 
+    module.exports = router;" >"./routes/$collection_name.js"
 
-#mount the route into the server
+    # Add the import and mount lines to the server.js file
 
-mount_line_number_file='.mount_line'
+    sed -i "${mount_line}i\\
+app.use('/', ${collection_name}Route);" "server.js"
 
-# Read the stored line number from the hidden file
+    sed -i "${import_line}i\\
+const ${collection_name}Route = require(\"./routes/${collection_name}\");" "server.js"
 
-mount_line_number=$(cat "$mount_line_number_file")
-echo "$mount_line_number"
+    # Increment the import and mount line numbers
+    import_line=$((import_line + 1))
+    mount_line=$((mount_line + 2))
 
-# Move the comment to the following line using sed
-sed -i "${mount_line_number}i\\
-app.use('/', ${filename}Router);" "server.js"
+    # Save the import and mount line numbers to the .shell_variables folder
+    echo "$import_line" >".shell_variables/.import_line"
+    echo "$mount_line" >".shell_variables/.mount_line"
 
-# Calculate the next line number
-mount_next_line_number=$((mount_line_number + 1))
+fi
 
-# Store the updated line number in the hidden file
-echo "$mount_next_line_number" > "$mount_line_number_file"
+# Create the controller file
+touch "./controllers/$collection_name/$filename.js"
 
-
-
-# Display success message
-echo "JavaScript file created: controllers/$filename.js"
-echo "JavaScript file created: routes/$filename.js"
-echo "Route is imported and mounted in server.js"
+# populate the controller file
+echo "exports.${filename} = function (req, res) {};" >"./controllers/$collection_name/$filename.js"
