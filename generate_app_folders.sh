@@ -1,6 +1,6 @@
 #!/bin/bash
 
-read -p "enter the server port:[default: 4000] " port
+read -rp "enter the server port:[default: 4000] " port
 port=${port:-4000}
 
 current_dir="$PWD"
