@@ -1,5 +1,7 @@
 # SEI-Shell-Scripts
 
+### this docs for version 1, main is currnetly with version 2
+
 generate_app_folders: this scripts will generate the folders for the application.<br><br>
 
 ```
